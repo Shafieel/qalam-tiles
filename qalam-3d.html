@@ -48,6 +48,11 @@ html.clip .wrap{padding:0; max-width:none; gap:0}
 html.clip .wrap > :not(.stage){display:none}
 html.clip .stage{border:0; outline:0; border-radius:0; width:100vw; height:100vh}
 html.clip .hint3d{display:none}
+
+.soundbtn{position:absolute; top:10px; left:10px; z-index:5; font:inherit; font-size:14px; font-weight:600; padding:7px 12px; border-radius:999px; border:1px solid rgba(0,0,0,.25); background:rgba(255,255,255,.92); color:#1b1a17; cursor:pointer}
+.soundbtn[aria-pressed="true"]{background:#1f5aa6; color:#fff; border-color:#1f5aa6}
+.soundbtn:focus-visible{outline:3px solid #e2b04f; outline-offset:2px}
+html.clip .soundbtn, html.embed .soundbtn{display:none}
 </style>
 <script>if (/[?&]clip=/.test(location.search)) document.documentElement.classList.add("clip");</script>
 </head>
@@ -55,12 +60,13 @@ html.clip .hint3d{display:none}
 <div class="wrap">
   <div class="eyebrow">Qalam Tiles · 3D walkthrough</div>
   <h1>Qalam Tiles: the craft table and the wall frame <span class="ar" lang="ar">قلم</span></h1>
-  <p class="lede">A six-sided craft table seats six, each with their own kit tray, so nobody waits in line. Visitors start at the Qalam Tiles sign and sit at a seat in the color of the proverb they like: blue, teal, or coral. They make one of its words as a tile, scan it, finish the proverb with tiles from neighbors and the bin of their color, hang it on the wall frame, and take home a card with their name. <a href="index.html">Back to the tiles</a></p>
+  <p class="lede">A six-sided craft table seats six, each with their own kit tray, so nobody waits in line. Visitors start by reading the Qalam Tiles sign, then sit at a seat in the color of the proverb they like: blue, teal, or coral. They make one of its words as a tile, scan it, finish the proverb with tiles from neighbors and the bin of their color, hang it on the wall frame, and take home a card with their name. <a href="index.html">Back to the tiles</a></p>
 
   <div class="stage" id="stage"><span class="hint3d">Drag to look around · scroll to zoom</span></div>
 
   <div class="steps" role="group" aria-label="Steps">
     <button class="btn solid" id="playAll" type="button">Play all</button>
+    <button class="btn" type="button" data-s="0" aria-pressed="false"><span class="n">★</span>Start: read the sign</button>
     <button class="btn" type="button" data-s="1" aria-pressed="false"><span class="n">1</span>Choose a proverb</button>
     <button class="btn" type="button" data-s="2" aria-pressed="false"><span class="n">2</span>Make your tile</button>
     <button class="btn" type="button" data-s="3" aria-pressed="false"><span class="n">3</span>Scan it</button>
@@ -599,8 +605,12 @@ function applyDone(n){
 }
 
 const CAP = {
+  0:["Start · Read the sign",
+     "Every visit starts at the Qalam Tiles sign by the entrance. New visitors stop, read the six steps with their pictures, and only then sit down.",
+     "Two new visitors read the sign while others keep working at the table, so nobody is in the way.",
+     "The sign ends with: pick a seat in the color of the proverb you like."],
   1:["1 · Choose a proverb",
-     "Visitors start at the Qalam Tiles sign, then sit at a seat in the color of the proverb they like. The child sits at a blue seat and the teen at a teal one. At the table, the child and the teen pick a proverb card, read the meaning, and scan its QR code. The seat screen shows the proverb, and their phone can play it aloud.",
+     "After reading the sign, visitors sit at a seat in the color of the proverb they like. The child sits at a blue seat and the teen at a teal one. At the table, the child and the teen pick a proverb card, read the meaning, and scan its QR code. The seat screen shows the proverb, and their phone can play it aloud.",
      "While some people work at the table, new visitors read the sign and wait for a free seat. Two seats per color, side by side, so friends can make the same proverb together. Every seat has its own cards and screen.",
      "The three proverbs use nine words in all. Each visitor makes one of the words in the proverb they chose."],
   2:["2 · Make your tile",
@@ -625,12 +635,18 @@ const CAP = {
      "The printer makes a small card with the name in Arabic calligraphy and in English, to take home."]
 };
 function caption(n){ const c = CAP[n]; $("capH").textContent = c[0]; $("capT").textContent = c[1]; $("capW").textContent = c[2]; $("capS").textContent = c[3]; }
+// start: every visit begins at the Qalam Tiles sign, where people read the six steps before they sit down
+async function step0(){
+  caption(0); RD.forEach(R => look(R, SIGN_LOOK));
+  if (CLIP !== null){ camera.position.set(...SIGN_CAM[0]); controls.target.set(...SIGN_CAM[1]); } else camGo(...SIGN_CAM, 1200);
+  await wait(2600);
+  if (CLIP !== null){ camera.position.set(...BOARD_CAM[0]); controls.target.set(...BOARD_CAM[1]); } else camGo(...BOARD_CAM, 1400);
+  await wait(3200);
+  if (CLIP === 0){ camera.position.set(2.2, 2.6, 3.0); controls.target.set(0.1, 0.9, -0.6); }
+}
 async function step1(){
   caption(1);
-  // new visitors start at the welcome sign, then come to the table
   RD.forEach(R => look(R, SIGN_LOOK));
-  if (CLIP !== null){ if (CLIP === 1){ camera.position.set(...SIGN_CAM[0]); controls.target.set(...SIGN_CAM[1]); } } else camGo(...SIGN_CAM, 1200);
-  await wait(3200);
   if (CLIP === 1) setFollow(1); else if (CLIP === null) camGo([-2.1, 1.8, 0.0], [-0.35, 1.0, 0.0]);
   await Promise.all([ choose(P2, VIS[1].seat, 0), choose(P3, VIS[2].seat, 1) ]);
   await wait(300);
@@ -672,13 +688,13 @@ async function step6(){
   const seat4 = radial(SEATS[4], AP + 0.15*R1.s);
   await Promise.all([ gift(P1), (async () => { await wait(700); look(R1, V(0, TOP, 0)); await walkPath(R1, [V(-2.15, 0, 1.3), V(-1.95, 0, 0.4), V(-1.45, 0, 0.0), seat4], SEATS[4] + Math.PI); look(R1, V(0, TOP, 0)); })() ]);
 }
-const STEPS = [null, step1, step2, step3, step4, step5, step6];
+const STEPS = [step0, step1, step2, step3, step4, step5, step6];
 let busy = false;
 function lock(on){ busy = on; document.querySelectorAll(".steps .btn").forEach(b => b.disabled = on); }
 async function run(list){ if (busy) return; lock(true); try { for (const n of list){ document.querySelectorAll("[data-s]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.s === n))); await STEPS[n](); await wait(300); } } finally { lock(false); } }
 function prepare(n){ resetAll(); applyDone(n-1); }
 document.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { if (busy) return; const n = +b.dataset.s; prepare(n); run([n]); });
-$("playAll").onclick = () => { if (busy) return; resetAll(); run([1,2,3,4,5,6]); };
+$("playAll").onclick = () => { if (busy) return; resetAll(); run([0,1,2,3,4,5,6]); };
 $("resetAll").onclick = () => { if (busy) return; resetAll(); camGo(HOME.p, HOME.t);
   document.querySelectorAll("[data-s]").forEach(b => b.setAttribute("aria-pressed","false"));
   $("capH").textContent = "Press a step"; $("capT").textContent = "Each step shows what visitors do with their hands."; $("capW").textContent = "Six seats, each with a full kit tray. Shared supplies sit on a turntable in the middle."; $("capS").textContent = "Each word sticker carries a small QR code. The seat screen shows the word, and any phone can play it aloud."; };
@@ -703,7 +719,7 @@ if (CLIP !== null){
   window.__clipReady = false; window.__clipDone = false;
   setTimeout(async () => {
     if (CLIP === 0){ resetAll(); camera.position.set(2.2, 2.6, 3.0); controls.target.set(0.1, 0.9, -0.6); controls.autoRotate = true; controls.autoRotateSpeed = 0.9;
-      window.__clipReady = true; for (const n of [1,2,3,4,5,6]) await STEPS[n](); await wait(500); }
+      window.__clipReady = true; for (const n of [0,1,2,3,4,5,6]) await STEPS[n](); await wait(500); }
     else { prepare(CLIP); caption(CLIP); await wait(500); window.__clipReady = true; await STEPS[CLIP](); await wait(400); }
     window.__clipDone = true;
   }, 1500);
@@ -736,6 +752,48 @@ function resize(){ const w = stage.clientWidth, h = stage.clientHeight; renderer
 new ResizeObserver(resize).observe(stage); resize();
 resetAll();
 document.fonts && document.fonts.ready.then(() => redrawers.forEach(f => f()));
+
+/* ---------- sound: a voice explains each step, and a chime marks the big moment ---------- */
+(() => {
+  const NARR = {"w": ["Welcome to Qalam Tiles. Qalam means pen in Arabic. Press Start, or Play all, and I'll explain each step."], "0": ["Start here.", "Every visit begins at the Qalam Tiles sign. Stop, read the six steps, and look at the pictures.", "Then pick a seat in the color of the proverb you like."], "1": ["Step one. Choose a proverb.", "Each proverb has a color: blue, teal, or coral. Every seat already has everything for its proverb.", {"ar": "الصبر مفتاح الفرج"}, "The child picks the blue proverb, Patience is the key to relief, and scans its card."], "2": ["Step two. Make your tile.", "Pick a shape and paper, paste your word, and press it flat.", "Trace the word with the pen if you like. Then glue a strip on each side, always in your proverb's color."], "3": ["Step three. Scan it.", "Hold the tile up to the seat screen. It shows the word, how to say it, and what it means.", {"ar": "الصبر"}, "As-sabr. Patience. To hear it, scan the same code with your phone."], "4": ["Step four. Finish the proverb.", "You only made one word. Your neighbor passes you a tile, and the missing word comes from the blue bin in the middle.", "Arabic reads from right to left. When the words are in order, the proverb is complete."], "5": ["Step five. Hang the folio.", "The child carries her folio to the wooden frame on the wall. It holds up to fifty proverbs, all made by many hands."], "6": ["Step six. Take a gift.", "Type your name and print a card with your name in Arabic and English. The tiles stay here. The card goes home with you."]}, CHIME_AT = [4];
+  const synth = window.speechSynthesis, stage = document.getElementById("stage");
+  if (!stage) return;
+  const btn = document.createElement("button"); btn.type = "button"; btn.className = "soundbtn";
+  let on = false; try { on = localStorage.getItem("qalam-sound") === "1"; } catch (e) {}
+  const show = () => { btn.setAttribute("aria-pressed", String(on)); btn.textContent = on ? "🔊 Sound on" : "🔇 Sound off"; btn.title = on ? "Turn the voice off" : "Turn on a voice that explains each step"; };
+  show(); stage.append(btn);
+  let voiceEn = null, voiceAr = null;
+  const pick = () => { const vs = synth ? synth.getVoices() : [];
+    const pref = ["Google US English", "Samantha", "Microsoft Aria", "Microsoft Jenny", "Alex"];
+    voiceEn = vs.find(v => pref.some(p => v.name.includes(p))) || vs.find(v => /^en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+    voiceAr = vs.find(v => /^ar/i.test(v.lang)) || null; };
+  if (synth){ pick(); synth.onvoiceschanged = pick; }
+  let ac = null;
+  function chime(){ if (!on) return; try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime;
+    [[659.25, 0], [987.77, 0.14]].forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(0.18, t + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.9);
+      o.connect(g).connect(ac.destination); o.start(t + d); o.stop(t + d + 1); }); } catch (e) {} }
+  let token = 0, speaking = Promise.resolve();
+  function say(n){
+    if (!synth) return; synth.cancel(); const my = ++token; if (!on || !NARR[n]) { speaking = Promise.resolve(); return; }
+    const parts = NARR[n].filter(p => typeof p === "string" || voiceAr);
+    speaking = new Promise(done => {
+      let i = 0; const next = () => { if (my !== token || i >= parts.length) return done();
+        const p = parts[i++], u = new SpeechSynthesisUtterance(typeof p === "string" ? p : p.ar);
+        if (typeof p === "string"){ if (voiceEn) u.voice = voiceEn; u.lang = voiceEn ? voiceEn.lang : "en-US"; u.rate = 0.98; }
+        else { u.voice = voiceAr; u.lang = voiceAr.lang; u.rate = 0.8; }
+        u.onend = u.onerror = next; synth.speak(u); };
+      next(); setTimeout(done, 25000); });
+  }
+  btn.onclick = () => { on = !on; try { localStorage.setItem("qalam-sound", on ? "1" : "0"); } catch (e) {} show();
+    if (!on && synth) { synth.cancel(); token++; }
+    else { const cur = document.querySelector("[data-s][aria-pressed='true']"); say(cur ? +cur.dataset.s : "w"); } };
+  const baseCap = caption; caption = n => { baseCap(n); say(n); };
+  STEPS.forEach((fn, n) => { if (!fn) return; STEPS[n] = async () => { await fn(); if (CHIME_AT.includes(n)) chime(); if (on) await speaking; }; });
+  document.querySelectorAll("#resetAll").forEach(b => b.addEventListener("click", () => { if (synth) synth.cancel(); token++; }));
+  if (on) say("w");
+})();
+
 requestAnimationFrame(frame);
 </script>
 </body>
