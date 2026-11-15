@@ -82,8 +82,8 @@ html.clip .hint3d{display:none}
   <section class="cap" aria-labelledby="legend-h">
     <h2 id="legend-h">What’s on the table</h2>
     <div class="cols legend3">
-      <div class="col"><span class="k">At each of the six seats</span><p>A kit tray with a word sticker sheet, a tracing card, a pencil, and a glue stick. Next to it: three proverb cards, a small seat screen, and a folio.</p></div>
-      <div class="col"><span class="k">On the turntable in the middle</span><p>Bins of blanks in four shapes (already faced with paper), a box of optional wood trim, glue, pencils, and the ready-to-use tiles: tiles made earlier, sitting in bins of their proverb color (blue, teal, coral) and reused all day.</p></div>
+      <div class="col"><span class="k">At each of the six seats</span><p>A kit tray with a word sticker sheet, a tracing card, a pen, and a glue stick. Next to it: three proverb cards, a small seat screen, and a folio.</p></div>
+      <div class="col"><span class="k">On the turntable in the middle</span><p>Bins of blanks in four shapes (already faced with paper), a box of optional wood trim, glue, pens, and the ready-to-use tiles: tiles made earlier, sitting in bins of their proverb color (blue, teal, coral) and reused all day.</p></div>
       <div class="col"><span class="k">Around the table</span><p>The Qalam Tiles sign at the entrance shows the six steps, including how a tile is made. The carved wall frame holds up to 50 folios. The gift printer makes name cards.</p></div>
     </div>
   </section>
@@ -186,7 +186,7 @@ function pasteNow(id){ const T = tiles[id], P = papers[id]; T.attach(P); P.rotat
 function edgeNow(id){ tiles[id].userData.strips.forEach(st => { st.material.color.setHex(CAT[WORDS[id].cat]); st.visible = true; }); }
 
 /* ---------- kit trays: one at every seat, so six people can make tiles at once ---------- */
-// the personal kit tray at every seat: a word sticker sheet, a tracing card, a pencil, and a glue stick
+// the personal kit tray at every seat: a word sticker sheet, a tracing card, a pen, and a glue stick
 function sheetDraw(g, w, h){
   g.fillStyle = "#ffffff"; g.fillRect(0,0,w,h); g.strokeStyle = "#d3d1c7"; g.lineWidth = 3; g.strokeRect(1,1,w-2,h-2);
   const ids = Object.keys(WORDS); g.textAlign = "center"; g.textBaseline = "middle"; g.direction = "rtl";
@@ -254,7 +254,7 @@ const VIS = [
 ];
 VIS.forEach(v => { const phi = SEATS[v.seat]; makeBlank(v.word, at(phi, 0.5, 0.06), phi); makePaper(v.word, at(phi, 0.5, -0.06), phi); });
 
-/* ---------- turntable in the middle: glue, pencils, spare stickers, and tiles earlier visitors made ---------- */
+/* ---------- turntable in the middle: glue, pens, spare stickers, and tiles earlier visitors made ---------- */
 const lazy = new THREE.Group(); lazy.position.set(0, TOP, 0); scene.add(lazy);
 add(new THREE.CylinderGeometry(0.29, 0.29, 0.02, 40), M(0x9a7445), [0, 0.01, 0], lazy);
 add(new THREE.CylinderGeometry(0.02, 0.022, 0.05, 16), M(0xf2f2f0, {roughness:.4}), [0, 0.045, 0], lazy);
@@ -487,7 +487,7 @@ async function walkPath(P, pts, faceAtEnd){
 async function grab(P, obj){ const p = wpos(obj), side = nearSide(P, p), A = armOf(P, side); look(P, p); reach(P, side, p.clone().add(V(0,0.015,0)), 800); await wait(820); A.follow = obj; return {A, side}; }
 function release(P, h){ h.A.follow = null; reach(P, h.side, null, 650); }
 async function moveTo(obj, to, dur=900, arc=0.05){ const from = obj.position.clone(); await tween(dur, t => { obj.position.lerpVectors(from, to, ease(t)); obj.position.y += Math.sin(t*Math.PI)*arc; }); }
-// 1: paste the word sticker on the blank, press it, trace the word with the pencil, add the edge
+// 1: paste the word sticker on the blank, press it, trace the word with the pen, add the edge
 async function makeTile(P, id, tray){
   const T = tiles[id], Pp = papers[id];
   let h = await grab(P, Pp); const to = T.position.clone().add(V(0, 0.0072, 0)); look(P, to);
@@ -604,7 +604,7 @@ const CAP = {
      "While some people work at the table, new visitors read the sign and wait for a free seat. Two seats per color, side by side, so friends can make the same proverb together. Every seat has its own cards and screen.",
      "The three proverbs use nine words in all. Each visitor makes one of the words in the proverb they chose."],
   2:["2 · Make your tile",
-     "First, visitors check step 2 on the Qalam Tiles sign: pick a shape, paste your word, glue the edges. Then each visitor pastes their word sticker on a blank, presses it flat, can trace it with the pencil, and glues a pre-cut strip on each side. The strips are always the seat’s color, so every tile shows its proverb.",
+     "First, visitors check step 2 on the Qalam Tiles sign: pick a shape, paste your word, glue the edges. Then each visitor pastes their word sticker on a blank, presses it flat, can trace it with the pen, and glues a pre-cut strip on each side. The strips are always the seat’s color, so every tile shows its proverb.",
      "Everything is already at the seat: stickers for that proverb, blanks, and strips in the seat’s color. Wood trim is an optional extra in the middle, for straight sides only. Two seats wait for the next people.",
      "The sign stays at the entrance, so anyone can check the next stage without asking."],
   3:["3 · Scan it",
